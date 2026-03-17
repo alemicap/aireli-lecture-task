@@ -1,17 +1,28 @@
 import { PlatformAccessToken, PlatformUserCreateInput, PlatformUser } from '@enterprise-commerce/core/platform/types';
 import axios from 'axios';
-import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 const registerUser = async (input: PlatformUserCreateInput): Promise<Pick<PlatformUser, "id"> | undefined | null> => {
-  // ToDo: Implement the registerUser function
-  return null
+  try {
+    // Make the POST request to the backend Express route we created earlier
+    // (Assuming your backend is running on port 3001 based on the getUser function)
+    const { data } = await axios.post('http://localhost:3001/api/auth/register', {
+      email: input.email,
+      password: input.password,
+    });
+
+    // Our backend controller returns { message, user, token }. 
+    // We just return the id as expected by the return type.
+    return { id: data.user.id };
+  } catch (error) {
+    console.error('Error in internalClient registerUser:', error);
+    return null;
+  }
 };
 
 const loginUser = async (input: PlatformUserCreateInput) => {
   // ToDo: Implement the loginUser function (someone else is working on it)
-  const user = {id: null} // replace this line
-
+  const user = { id: null } // replace this line
 
   // The following lines can be left unchanged because the output is expected to be a JWT token and an expiresAt value
   const accessToken = jwt.sign({ id: user?.id }, process.env.JWT_SECRET || "no_key_set" as string, { expiresIn: '1h' });
@@ -40,7 +51,7 @@ const getUser = async (accessToken: string): Promise<PlatformUser | undefined | 
 };
 
 export default {
-  registerUser,
-  loginUser,
+  createUser: registerUser,             // Aliased to match user.actions.ts
+  createUserAccessToken: loginUser,     // Aliased to match user.actions.ts
   getUser
 };
